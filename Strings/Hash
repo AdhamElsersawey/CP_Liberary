@@ -46,3 +46,18 @@ struct cash {
         return (suf[n - l + 1] - suf[n - r] + mod) * invpow[n - r] % mod;
     }
 };
+struct DoubleHash {
+    cash h1, h2;
+
+    DoubleHash(const string &s) {
+        h1 = cash(s, 1e9 + 7, 131);
+        h2 = cash(s, 1e9 + 9, 137);
+    }
+
+    pair<ll, ll> get(int l, int r) {
+        return {h1.get(l, r), h2.get(l, r)};
+    } pair<ll, ll> get2(int l, int r) {
+        return {h1.get2(l, r), h2.get2(l, r)};
+    }
+};
+
