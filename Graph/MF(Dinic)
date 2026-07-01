@@ -22,6 +22,7 @@ struct Dinic {
         ptr.resize(n);
     }
 
+    // max flow== min cut
     void add_edge(int v, int u, long long cap) {
         edges.emplace_back(v, u, cap);
         edges.emplace_back(u, v, 0);
@@ -80,5 +81,25 @@ struct Dinic {
             }
         }
         return f;
+    }
+
+    //the number of paths from the s to the t and get the path
+    ll extract(int v,ll cur, vector<int> &path, vector<int> &vis) {
+        if (v == t) {
+            path.push_back(v);
+            return cur;
+        }
+        vis[v] = 1;
+        path.push_back(v);
+        for (auto u: adj[v]) {
+            if (edges[u].flow > 0 && !vis[edges[u].u]) {
+                ll push = extract(edges[u].u, min(cur, edges[u].flow), path, vis);
+                if (push <= 0)continue;
+                edges[u].flow -= push;
+                return push;
+            }
+        }
+        path.pop_back();
+        return 0;
     }
 };
