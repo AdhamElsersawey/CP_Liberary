@@ -1,0 +1,28 @@
+ll string_match(string s, string pat) {
+    ll n = s.size(), m = pat.size();
+
+
+    vector<ll> p1(n), p2(m), ans(n);
+    FFT f;
+
+
+    //هنخلي واحد موجب و التاني سالب و بكده انا حافظت ع المسافة
+    ll sh = m - 1;
+    for (int i = 0; i < 26; ++i) {
+        for (int j = 0; j < n; j++) {
+            p1[j] = (s[j] - 'a') == i;
+        }
+        for (int j = 0; j < m; j++) {
+            p2[sh - j] = (pat[j] - 'a') == i;
+        }
+        auto ret = f.mul(p1, p2);
+        for (int j = 0; j < n; ++j) {
+            ans[j] += ret[j];
+        }
+    }
+    ll ret = 0;
+    for (int i = 0; i <= n - m; ++i) {
+        if (ans[i + sh] == m)ret++;
+    }
+    return ret;
+}
