@@ -1,0 +1,8 @@
+// from 1 to n how many number contains the kth bit
+ll kth(ll n,ll k){
+++n;
+ind f=1ll<<(k+1),h=1ll<<(k);
+return n/f*h+max(0ll,n%f-h);
+
+
+}
