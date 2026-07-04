@@ -1,0 +1,60 @@
+struct Line {
+    ll m, b;
+    ll eval(ll x) { return m * x + b; }
+};
+
+struct CHT {
+    vector<Line> lines;
+    using ii = __int128;
+    int ptr = 0;
+    // may overflow
+    bool bad(Line L1, Line L2, Line L3) {
+        return (ii) (L3.b - L1.b) * (L1.m - L2.m) <= (ii) (L2.b - L1.b) * (L1.m - L3.m);
+        // For max: Change <= to >
+    }
+
+    // m->slope , b-> the y-axis part
+    void add(ll m, ll b) {
+        Line newLine = {m, b};
+        while (lines.size() >= 2 && bad(lines[lines.size() - 2], lines.back(), newLine)) {
+            lines.pop_back();
+        }
+        lines.push_back(newLine);
+    }
+
+    //if the queries mono
+    ll query1(ll x) {
+        if (lines.empty()) return 0;
+        if (ptr >= lines.size()) ptr = lines.size() - 1;
+
+        while (ptr < lines.size() - 1 && lines[ptr + 1].eval(x) < lines[ptr].eval(x)) {
+            // For max: Change < to >
+            ptr++;
+        }
+        return lines[ptr].eval(x);
+    }
+
+    // any
+    ll query2(ll x) {
+        if (lines.empty()) return 0;
+        int l = 0, r = lines.size() - 1;
+        ll ans = lines[0].eval(x);
+
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            ll y1 = lines[mid].eval(x);
+            ll y2 = (mid + 1 < lines.size()) ? lines[mid + 1].eval(x) : OO;
+
+            ans = max(ans, y1);
+            // For max: Change min to max
+
+            if (y1 >= y2) {
+                // For max: Change >= to <=
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    }
+};
