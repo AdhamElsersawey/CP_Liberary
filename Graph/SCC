@@ -1,0 +1,26 @@
+ vector<ll> on(n + 1), ids(n + 1, -1), low(n + 1);
+    stack<ll> s;
+    ll ret = 0, id = 0;
+    function<void(ll)> SCC = [&](ll u) {
+        s.push(u);
+        on[u] = 1;
+        ids[u] = low[u] = id++;
+        for (auto v: adj[u]) {
+            if (ids[v] == -1) {
+                SCC(v);
+                low[u] = min(low[u], low[v]);
+            }else if (on[v]) {
+                low[u] = min(low[u], ids[v]);
+            }
+        }
+        if (ids[u] == low[u]) {
+            ret++;
+            while (1) {
+                ll i = s.top();
+                s.pop();
+                on[i] = 0;
+                adj2[ret].push_back(cost[i]);
+                if (i == u) break;
+            }
+        }
+    };
