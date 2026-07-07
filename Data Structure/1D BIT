@@ -1,0 +1,44 @@
+struct fen {
+    int n;
+    vector<int> tree;
+    ll merge(int l, int r) { return l + r; }
+
+    fen(int _n) {
+        n = 1;
+        while (_n > n)n <<= 1;
+        tree.resize(n + 1);
+    }
+
+    void update(int i, int x) {
+        //nlog
+        for (; i <= n; i += (i & -i) ) {
+            tree[i] = merge(tree[i], x);
+        }
+    }
+
+    ll get(int i) {
+        if (i <= 0)return 0;
+        ll ret = 0;
+        for (; i; i -= (i & -i) ) {
+            ret = merge(ret, tree[i]);
+        }
+        return ret;
+    }
+
+    int query(int l, int r) {
+        return get(r) - get(l - 1);
+    }
+
+    // usually lower bound
+    ll lower(ll x) {
+        ll ret = 0;
+        for (int i = n; i && x; i >>= 1) {
+            if (ret + i <= n && tree[ret + i] < x) {
+                x -= tree[ret + i];
+                ret += i;
+            }
+        }
+        // 1-based
+        return ret + 1;
+    }
+};
