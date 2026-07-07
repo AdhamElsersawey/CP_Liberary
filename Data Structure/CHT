@@ -1,33 +1,47 @@
+template<typename T>
 struct Line {
-    ll m, b;
-    ll eval(ll x) { return m * x + b; }
+    T m, b;
+    T eval(T x) { return m * x + b; }
 };
 
+using ld = long double;
+
+template<typename T>
 struct CHT {
-    vector<Line> lines;
+    vector<Line<T> > lines;
     using ii = __int128;
     int ptr = 0;
+    // if the sol in doubles
+    ld inr(Line<T> l, Line<T> l1) {
+        return (l.b - l1.b) / (l1.m - l.m);
+    }
+
+    bool inter(Line<T> l1, Line<T> l2, Line<T> l3) {
+        return inr(l1, l3) >= inr(l1, l2);
+    }
+
     // may overflow
-    bool bad(Line L1, Line L2, Line L3) {
+
+    bool bad(Line<T> L1, Line<T> L2, Line<T> L3) {
         return (ii) (L3.b - L1.b) * (L1.m - L2.m) <= (ii) (L2.b - L1.b) * (L1.m - L3.m);
         // For max: Change <= to >
     }
 
     // m->slope , b-> the y-axis part
-    void add(ll m, ll b) {
-        Line newLine = {m, b};
-        while (lines.size() >= 2 && bad(lines[lines.size() - 2], lines.back(), newLine)) {
+    void add(T m, T b) {
+        Line<T> newLine = {m, b};
+        while (lines.size() >= 2 && inter(lines[lines.size() - 2], lines.back(), newLine)) {
             lines.pop_back();
         }
         lines.push_back(newLine);
     }
 
     //if the queries mono
-    ll query1(ll x) {
-        if (lines.empty()) return 0;
+    T query1(T x) {
+        if (lines.empty()) return -OO;
         if (ptr >= lines.size()) ptr = lines.size() - 1;
 
-        while (ptr < lines.size() - 1 && lines[ptr + 1].eval(x) < lines[ptr].eval(x)) {
+        while (ptr < lines.size() - 1 && lines[ptr + 1].eval(x) > lines[ptr].eval(x)) {
             // For max: Change < to >
             ptr++;
         }
@@ -35,20 +49,20 @@ struct CHT {
     }
 
     // any
-    ll query2(ll x) {
-        if (lines.empty()) return 0;
+    T query2(T x) {
+        if (lines.empty()) return -OO;
         int l = 0, r = lines.size() - 1;
-        ll ans = lines[0].eval(x);
+        T ans = lines[0].eval(x);
 
         while (l <= r) {
             int mid = l + (r - l) / 2;
-            ll y1 = lines[mid].eval(x);
-            ll y2 = (mid + 1 < lines.size()) ? lines[mid + 1].eval(x) : OO;
+            T y1 = lines[mid].eval(x);
+            T y2 = (mid + 1 < lines.size()) ? lines[mid + 1].eval(x) : -OO;
 
             ans = max(ans, y1);
             // For max: Change min to max
 
-            if (y1 >= y2) {
+            if (y1 <= y2) {
                 // For max: Change >= to <=
                 l = mid + 1;
             } else {
