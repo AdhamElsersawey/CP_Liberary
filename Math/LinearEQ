@@ -90,3 +90,15 @@ ll find_all_solutions(ll a, ll b, ll c, ll minx, ll maxx, ll miny, ll maxy) {
  * x + y + k * d
  * pick the k that satisfies the problem
  * */
+ll sysOfLEQ(vector<ll> &rems, vector<ll> &mods){
+    ll rem = rems[0], mod = mods[0];
+    for (int i = 1; i < rems.size(); ++i) {
+        ll x, y, found;
+        ll g = LD(mod, -mods[i], rems[i] - rem, x, y, found);
+        if (!found)return -1;
+        rem += mod * x;
+        mod = mod / g * mods[i];
+        rem = (rem % mod + mod) % mod;
+    }
+    return rem;
+}
