@@ -1,0 +1,80 @@
+
+vector<int> depth, parent, pos, head, heavy;
+vector<vector<int> > adj;
+int cnt;
+
+int dfs(int u, int par, int dep) {
+    depth[u] = dep;
+    parent[u] = par;
+
+    int sub_size = 1;
+    int heavy_node = -1, maxa = -1;
+    for (auto &v: adj[u]) {
+        if (v != par) {
+            int node_size = dfs(v, u, dep + 1);
+            sub_size += node_size;
+            if (node_size > maxa) {
+                maxa = node_size;
+                heavy_node = v;
+            }
+        }
+    }
+    heavy[u] = heavy_node;
+
+    return sub_size;
+}
+
+void HLD(int u, int chain_head) {
+    if (u == -1)
+        return;
+
+    pos[u] = cnt++;
+    head[u] = chain_head;
+
+    HLD(heavy[u], chain_head);
+
+    for (auto &v: adj[u]) {
+        if (v != parent[u] && v != heavy[u])
+            HLD(v, v);
+    }
+}
+
+int Get_Path(int u, int v, SegT &st) {
+    int ans = 0;
+    while (head[u] != head[v]) {
+        if (depth[head[u]] > depth[head[v]])
+            swap(u, v);
+        ans = max(ans, st.query(pos[head[v]], pos[v] + 1).coun);
+        v = parent[head[v]];
+    }
+    if (depth[u] > depth[v])
+        swap(u, v);
+    ans = max(ans, st.query(pos[u], pos[v] + 1).coun);
+
+    return ans;
+}
+
+void Set_Path(int u, int v, int val, SegT &st) {
+    while (head[u] != head[v]) {
+        if (depth[head[u]] > depth[head[v]])
+            swap(u, v);
+        st.set(pos[head[v]], val);
+        v = parent[head[v]];
+    }
+    if (depth[u] > depth[v])
+        swap(u, v);
+    st.set(pos[u], val);
+}
+
+
+void init(int n) {
+    adj.assign(n + 1, {});
+
+    depth.resize(n + 1);
+    parent.resize(n + 1);
+    heavy.resize(n + 1);
+
+    pos.resize(n + 1);
+    head.resize(n + 1);
+    cnt = 0;
+}
