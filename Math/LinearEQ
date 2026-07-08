@@ -1,0 +1,92 @@
+ // Returns gcd(a, b), and finds x and y such that ax + by = gcd(a, b)
+// handle negative values of a and b
+ll extended_gcd(ll a, ll b, ll &x, ll &y) {
+    if (b == 0) {
+        x = a >= 0 ? 1 : -1, y = 0;
+        return abs(a);
+    }
+    ll x1, y1;
+    ll g = extended_gcd(b, a % b, x1, y1);
+    x = y1, y = x1 - (a / b) * y1;
+    return g;
+}
+
+ll LD(ll a, ll b, ll c, ll &x, ll &y, ll &found) {
+    ll g = extended_gcd(a, b, x, y);
+    if ((found = c % g == 0)) {
+        x = x * c / g, y = y * c / g;
+    }
+    return g;
+}
+
+vector<ll> modEq(ll a,ll b,ll n){
+    a = (a % n + n) % n;
+    b = (b % n + n) % n;
+    vector<ll> sols;
+    ll x , y;
+    ll g = extended_gcd(a, n, x, y);
+    if (b % g != 0)return sols;
+    x = ((x * b / g) % n + n) % n;
+    for (int i = 0; i < g; ++i)
+        sols.emplace_back((x + i * n / g) % n);
+    sort(ALL(sols));
+    return sols;
+}
+
+void shift_solution(ll & x, ll & y, ll a, ll b, ll cnt) {
+    x += cnt * b;
+    y -= cnt * a;
+}
+// sol in x in [minX : maxX] & y in [minY : maxY]
+ll find_all_solutions(ll a, ll b, ll c, ll minx, ll maxx, ll miny, ll maxy) {
+    ll x, y;
+    ll g = extended_gcd(a, b, x, y);
+    if (c % g != 0)
+        return 0;
+    a /= g;
+    b /= g;
+
+    ll sign_a = a > 0 ? +1 : -1;
+    ll sign_b = b > 0 ? +1 : -1;
+
+    shift_solution(x, y, a, b, (minx - x) / b);
+    if (x < minx)
+        shift_solution(x, y, a, b, sign_b);
+    if (x > maxx)
+        return 0;
+    ll lx1 = x;
+
+    shift_solution(x, y, a, b, (maxx - x) / b);
+    if (x > maxx)
+        shift_solution(x, y, a, b, -sign_b);
+    ll rx1 = x;
+
+    shift_solution(x, y, a, b, -(miny - y) / a);
+    if (y < miny)
+        shift_solution(x, y, a, b, -sign_a);
+    if (y > maxy)
+        return 0;
+    ll lx2 = x;
+
+    shift_solution(x, y, a, b, -(maxy - y) / a);
+    if (y > maxy)
+        shift_solution(x, y, a, b, sign_a);
+    ll rx2 = x;
+
+    if (lx2 > rx2)
+        swap(lx2, rx2);
+    ll lx = max(lx1, lx2);
+    ll rx = min(rx1, rx2);
+
+    if (lx > rx)
+        return 0;
+    return (rx - lx) / abs(b) + 1;
+}
+/*
+ * smallest sol (x+y) is
+ * x + y + k * (b/g - a/g)
+ * x + y + k * (b - a) / g
+ * d = (b - a)/g
+ * x + y + k * d
+ * pick the k that satisfies the problem
+ * */
