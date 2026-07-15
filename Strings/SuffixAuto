@@ -1,0 +1,104 @@
+struct sufauto {
+    static const int A = 26;
+
+    struct stat {
+        int len = 0, lnk = -1, cnt = 0, firstpos = -1;
+        bool clone = 0;
+        array<int, A> nxt;
+        stat() { nxt.fill(-1); }
+    };
+
+    vector<stat> t{{}};
+    int lst = 0, o = 0;
+    vector<int> dp;
+
+    sufauto(const string &s) {
+        for (auto i: s) insert(i);
+        calc();
+    }
+
+    sufauto() {
+    }
+
+    void insert(char ce) {
+        int c = ce - 'a', cur = t.size(), p = lst;
+        t.push_back({});
+        t[cur].len = t[p].len + 1;
+        t[cur].firstpos = t[cur].len - 1; // the pos that string end at 0-base
+        t[cur].cnt = 1;
+        t[cur].lnk = 0;
+        lst = cur;
+        while (~p && t[p].nxt[c] == -1) {
+            t[p].nxt[c] = cur;
+            p = t[p].lnk;
+        }
+        if (p == -1) return;
+        int q = t[p].nxt[c];
+        if (t[q].len == t[p].len + 1) {
+            t[cur].lnk = q;
+            return;
+        }
+        int clo = t.size();
+        t.push_back(t[q]);
+        t[clo].len = t[p].len + 1;
+        t[clo].clone = 1;
+        t[clo].cnt = 0;
+        while (~p && t[p].nxt[c] == q) {
+            t[p].nxt[c] = clo;
+            p = t[p].lnk;
+        }
+        t[q].lnk = t[cur].lnk = clo;
+    }
+
+    void calc() {
+        int n = t.size();
+        dp.resize(n + 2, -1);
+        vector<int> ord(n - 1);
+
+
+        iota(ord.begin(), ord.end(), 1);
+
+        sort(ord.begin(), ord.end(), [&](int i, int j) {
+            return t[i].len > t[j].len;
+        });
+
+        for (int i: ord) {
+            t[t[i].lnk].cnt += t[i].cnt;
+        }
+    }
+
+    int move(int pos, char c) {
+        return ~pos ? t[pos].nxt[c - 'a'] : -1;
+    }
+
+    // the number of distinct strings
+    int dfs(int u = 0) {
+        ll &ret = dp[u];
+        if (~ret)return ret;
+        ret = 1;
+        for (auto v: t[u].nxt) {
+            if (~v)ret += dfs(v);
+        }
+        return ret;
+    }
+
+
+    int contains(const string &pat) {
+        int curr = 0;
+        for (char c: pat) {
+            curr = move(curr, c);
+            if (curr == -1) return 0;
+        }
+        return 1;
+    }
+
+    // O(|pat|)
+    int count_occurrences(const string &pat) {
+        int curr = 0;
+        for (char c: pat) {
+            curr = move(curr, c);
+            if (curr == -1) return -1;
+        }
+        return (t[curr].cnt);
+    }
+};
