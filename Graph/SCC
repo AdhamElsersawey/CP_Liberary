@@ -24,3 +24,21 @@
             }
         }
     };
+////////// find bridges
+    function<void(int,int)> dfs = [&](int u,int p) {
+        vis[u] = 1;
+// with -1s
+        tin[u] = low[u] = timer++;
+        for (int v: adj[u]) {
+            if (v == p)continue;
+            if (vis[v]) {
+                low[u] = min(low[u], tin[v]);
+            } else {
+                dfs(v, u);
+                low[u] = min(low[u], low[v]);
+                if (low[v] > tin[u]) {
+                    bridge.push_back({v, u});
+                }
+            }
+        }
+    };
