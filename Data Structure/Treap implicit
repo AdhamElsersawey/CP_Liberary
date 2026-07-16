@@ -1,0 +1,166 @@
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+//الترتيب بيكون بال index
+template<typename T>
+struct Treap {
+    struct Node {
+        T val, sum;
+        T lazy = 0;
+        int sz = 1, rv = 0;
+        uint64_t p = rng();
+        Node *l = nullptr, *r = nullptr;
+
+        Node(T v = T()) : val(v), sum(v) {
+        }
+    } *root = nullptr;
+
+    ~Treap() { destroy(root); }
+
+    void destroy(Node *t) {
+        if (!t) return;
+        destroy(t->l);
+        destroy(t->r);
+        delete t;
+    }
+
+    int sz(Node *t) { return t ? t->sz : 0; }
+    T sum(Node *t) { return t ? t->sum : 0; }
+
+    void push(Node *t) {
+        if (!t) return;
+
+        if (t->rv) {
+            swap(t->l, t->r);
+            if (t->l) t->l->rv ^= 1;
+            if (t->r) t->r->rv ^= 1;
+            t->rv = 0;
+        }
+
+        if (t->lazy != 0) {
+            t->val += t->lazy;
+            t->sum += t->lazy * sz(t);
+            if (t->l) t->l->lazy += t->lazy;
+            if (t->r) t->r->lazy += t->lazy;
+            t->lazy = 0;
+        }
+    }
+
+    Node *update(Node *t) {
+        if (t) {
+            t->sz = 1 + sz(t->l) + sz(t->r);
+            t->sum = t->val + sum(t->l) + sum(t->r);
+        }
+        return t;
+    }
+
+    Node *merge(Node *l, Node *r) {
+        push(l);
+        push(r);
+        if (!l || !r) return l ? l : r;
+        if (l->p > r->p) {
+            l->r = merge(l->r, r);
+            return update(l);
+        }
+        r->l = merge(l, r->l);
+        return update(r);
+    }
+
+    // الـ Split هنا بالـ Index مش بالقيمة
+    // k = عدد العناصر اللي هتروح في الشجرة اللي على الشمال
+    pair<Node *, Node *> split(Node *t, int k) {
+        if (!t) return {nullptr, nullptr};
+        push(t);
+        int left_sz = sz(t->l);
+
+        if (k <= left_sz) {
+            auto [l, r] = split(t->l, k);
+            t->l = r;
+            return {l, update(t)};
+        } else {
+            auto [l, r] = split(t->r, k - left_sz - 1);
+            t->r = l;
+            return {update(t), r};
+        }
+    }
+
+    // إضافة قيمة في اندكس معين (0-based)
+    void insert(int pos, T val) {
+        if (pos < 0 || pos > sz(root)) return;
+        auto [l, r] = split(root, pos);
+        Node *mid = new Node(val);
+        root = merge(merge(l, mid), r);
+    }
+
+    // إضافة في الآخر (push_back)
+    void push_back(T val) {
+        insert(sz(root), val);
+    }
+
+    // مسح عنصر في اندكس معين (0-based)
+    void erase(int pos) {
+        if (pos < 0 || pos >= sz(root)) return;
+        auto [left_mid, right] = split(root, pos + 1);
+        auto [left, mid] = split(left_mid, pos);
+        destroy(mid);
+        root = merge(left, right);
+    }
+
+    // استعلام عن المجموع من اندكس L لـ R (0-based)
+    T query(int l, int r) {
+        if (l > r || l < 0 || r >= sz(root)) return 0;
+        auto [left_mid, right] = split(root, r + 1);
+        auto [left, mid] = split(left_mid, l);
+
+        T ans = sum(mid);
+
+        root = merge(merge(left, mid), right);
+        return ans;
+    }
+
+    // تزويد قيمة على فترة من L لـ R (0-based)
+    void add_range(int l, int r, T add_val) {
+        if (l > r || l < 0 || r >= sz(root)) return;
+        auto [left_mid, right] = split(root, r + 1);
+        auto [left, mid] = split(left_mid, l);
+
+        if (mid) {
+            mid->lazy += add_val;
+        }
+
+        root = merge(merge(left, mid), right);
+    }
+
+    // قلب الفترة من L لـ R (Reverse)
+    void reverse_range(int l, int r) {
+        if (l >= r || l < 0 || r >= sz(root)) return;
+        auto [left_mid, right] = split(root, r + 1);
+        auto [left, mid] = split(left_mid, l);
+
+        if (mid) {
+            mid->rv ^= 1;
+        }
+
+        root = merge(merge(left, mid), right);
+    }
+
+    // الحصول على قيمة العنصر في اندكس معين
+    T get(int pos) {
+        return query(pos, pos);
+    }
+
+    void print(Node *t) {
+        if (!t) return;
+        push(t);
+        print(t->l);
+        cout << t->val << " ";
+        print(t->r);
+    }
+
+    void print() {
+        print(root);
+        cout << '\n';
+    }
+
+    int size() {
+        return sz(root);
+    }
+};
