@@ -129,4 +129,20 @@ struct sufauto {
         }
         return (t[curr].cnt);
     }
+
+//lcs
+    int maxmatch(string &pat) {
+        int cur = 0, l = 0, ans = 0;
+        for (auto c: pat) {
+            c -= 'a';
+            while (cur > 0 && t[cur].nxt[c] == -1) {
+                cur = t[cur].lnk;
+                if (~cur) l = t[cur].len;
+            }
+            if (~t[cur].nxt[c])cur = t[cur].nxt[c], ++l;
+            else cur = l = 0;
+            ans = max(ans, l);
+        }
+        return ans;
+    }
 };
