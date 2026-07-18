@@ -2,7 +2,7 @@ struct sufauto {
     static const int A = 26;
 
     struct stat {
-        int len = 0, lnk = -1, cnt = 0, firstpos = -1;
+        int len = 0, lnk = -1, cnt = 0, firstpos = -1, sz = 0;
         bool clone = 0;
         array<int, A> nxt;
         stat() { nxt.fill(-1); }
@@ -71,6 +71,18 @@ struct sufauto {
         return ~pos ? t[pos].nxt[c - 'a'] : -1;
     }
 
+    // pre to calc the sz
+    void dfss(int u = 0) {
+        t[u].sz = t[u].cnt;
+        // if distinct change the sz to 1
+        for (auto v: t[u].nxt) {
+            if (~v) {
+                if (!t[v].sz)dfss(v);
+                t[u].sz += t[v].sz;
+            }
+        }
+    }
+
     // the number of distinct strings
     int dfs(int u = 0) {
         ll &ret = dp[u];
@@ -82,6 +94,22 @@ struct sufauto {
         return ret;
     }
 
+    // get the kth  the strings not distinct, call it with k-1
+    void kth(string &ret,int k,int u = 0,int fr = 1) {
+        if (fr)dfss();
+        if (k < 0)return;
+        for (char c = 'a'; c <= 'z'; ++c) {
+            int v = t[u].nxt[c - 'a'];
+            if (!~v)continue;
+            if (t[v].sz <= k) {
+                k -= t[v].sz;
+            } else {
+                ret.push_back(c), kth(ret, k - t[v].cnt, v, 0);
+                // change cnt to 1 if distinct
+                return;
+            }
+        }
+    }
 
     int contains(const string &pat) {
         int curr = 0;
