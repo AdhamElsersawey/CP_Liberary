@@ -1,0 +1,24 @@
+int getLIS(const vector<int>& nums) {
+    if (nums.empty()) return 0;
+
+    vector<int> tails;
+
+    for (int x : nums) {
+        // lower_bound uses Binary Search (O(log N)) to find the 
+        // first element >= x in the tails array.
+        auto it = lower_bound(tails.begin(), tails.end(), x);
+
+        // If 'x' is larger than all elements, append it.
+        if (it == tails.end()) {
+            tails.push_back(x);
+        } 
+        // Otherwise, overwrite the existing element to improve the tail.
+        else {
+            *it = x;
+        }
+    }
+
+    // The length of the 'tails' array is the length of the LIS!
+    // Note: The elements in 'tails' might NOT be the actual LIS sequence.
+    return tails.size();
+}
