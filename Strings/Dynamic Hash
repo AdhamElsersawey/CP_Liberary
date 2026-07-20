@@ -1,0 +1,72 @@
+// 0-base
+struct dynamichash {
+    int n;
+    string s;
+    ll BASE, MOD;
+    vector<ll> bit, power, invPower;
+    ll pw(ll base,ll exp) {
+        ll res = 1;
+        base %= MOD;
+        while (exp) {
+            if (exp % 2) res = (res * base) % MOD;
+            base = (base * base) % MOD;
+            exp /= 2;
+        }
+        return res;
+    }
+
+    ll modInverse(ll n) {
+        return pw(n, MOD - 2);
+    }
+
+    void add(int idx,ll val) {
+        idx++;
+        val = (val % MOD + MOD) % MOD;
+        for (; idx <= n; idx += idx & -idx) {
+            bit[idx] = (bit[idx] + val) % MOD;
+        }
+    }
+
+    ll query(int idx) {
+        idx++;
+        ll sum = 0;
+        for (; idx > 0; idx -= idx & -idx) {
+            sum = (sum + bit[idx]) % MOD;
+        }
+        return sum;
+    }
+
+    dynamichash(const string &str,ll b = 31,ll m = 1e9 + 9)
+        : n(str.length()), s(str), BASE(b), MOD(m) {
+        bit.assign(n + 1, 0);
+        power.assign(n, 1);
+        invPower.assign(n, 1);
+        ll invBase = modInverse(BASE);
+        for (int i = 1; i < n; i++) {
+            power[i] = (power[i - 1] * BASE) % MOD;
+            invPower[i] = (invPower[i - 1] * invBase) % MOD;
+        }
+
+        for (int i = 0; i < n; i++) {
+            ll val = (1LL * s[i] * power[i]) % MOD;
+            add(i, val);
+        }
+    }
+
+    // Update character at index `i` to `c`
+    void update(int i, char c) {
+        if (s[i] == c) return;
+        ll diff = (c - s[i]) % MOD;
+        diff = (diff * power[i]) % MOD;
+        add(i, diff);
+        s[i] = c;
+    }
+
+    // Get hash of substring s[L...R]
+    ll getHash(int L, int R) {
+        ll hashR = query(R);
+        ll hashL = (L > 0) ? query(L - 1) : 0;
+        ll rangeHash = (hashR - hashL + MOD) % MOD;
+        return (rangeHash * invPower[L]) % MOD;
+    }
+};
