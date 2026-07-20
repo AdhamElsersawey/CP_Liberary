@@ -11,119 +11,102 @@
 
 // Destination:
 // - Smallest disk has two choices:
-//     Odd n : From -> To -> Aux -> From -> ...
-//     Even n: From -> Aux -> To -> From -> ...
+//     Odd n : From -> Target -> rem -> From -> ...
+//     Even n: From -> rem -> Target -> From -> ...
 // - Every other disk has only ONE legal move.
 //   Move it to the only rod where it can legally be placed.
 
 // Total moves = (1 << n) - 1.
 
-struct Rod {
-    stack<int> disks;
-};
 
-// Return the index of the changed bit (0 = smallest disk)
-int changedBit(int a, int b) {
-    return __builtin_ctz(a ^ b);
-}
 
 int main() {
     int n;
     cin >> n;
-
-    // Rods:
-    // 0 = From
-    // 1 = Auxiliary
-    // 2 = Target
-    Rod rods[3];
-
-    // Initially all disks are on rod 0.
-    // Larger number = larger disk.
-    for (int i = n; i >= 1; i--)
-        rods[0].disks.push(i);
-
-    // Position of every disk.
-    // pos[1] = rod containing disk 1.
-    vector<int> pos(n + 1, 0);
-
-    // Order in which the smallest disk moves.
-    vector<int> cycle;
-
-    if (n & 1)
-        cycle = {0, 2, 1};      // From -> Target -> Aux
-    else
-        cycle = {0, 1, 2};      // From -> Aux -> Target
-
-    // Current position inside the cycle.
-    int smallestIndex = 0;
-
-    int totalMoves = (1 << n) - 1;
-
-    int prevGray = 0;
-
-    for (int step = 1; step <= totalMoves; step++) {
-
-        // Current Gray code.
-        int gray = step ^ (step >> 1);
-
-        // Which bit changed?
-        int bit = changedBit(prevGray, gray);
-
-        // Disk number (1 = smallest)
-        int disk = bit + 1;
-
-        if (disk == 1) {
-            // -------------------------------
-            // Smallest disk:
-            // Move according to the fixed cycle.
-            // -------------------------------
-
-            int from = cycle[smallestIndex];
-            smallestIndex = (smallestIndex + 1) % 3;
-            int to = cycle[smallestIndex];
-
-            rods[from].disks.pop();
-            rods[to].disks.push(1);
-
-            pos[1] = to;
-
-            cout << from + 1 << " -> " << to + 1 << '\n';
-        }
-        else {
-            // ---------------------------------------
-            // Any larger disk:
-            // There is exactly ONE legal destination.
-            // ---------------------------------------
-
-            int from = pos[disk];
-
-            // Check the other two rods.
-            for (int to = 0; to < 3; to++) {
-
-                if (to == from)
-                    continue;
-
-                // Can place disk if rod is empty
-                // or its top disk is larger.
-                if (rods[to].disks.empty() ||
-                    rods[to].disks.top() > disk) {
-
-                    // Remove disk from source rod.
-                    rods[from].disks.pop();
-
-                    // Put it on destination rod.
-                    rods[to].disks.push(disk);
-
-                    pos[disk] = to;
-
-                    cout << from + 1 << " -> " << to + 1 << '\n';
-
-                    break;
+    stack<int> a, b, c;
+    for (int i = n - 1; ~i; --i) {
+        a.push(i);
+    }
+    auto g = [](int x){return x ^ (x >> 1);};
+    vi move(3);
+    if (n & 1) {
+        move = {3, 2, 1};
+    }else{
+        move = {2, 3, 1};
+    }
+    int cnt = 0;
+    cout << (1 << n) - 1 << el;
+    for (int i = 1; i < 1 << n; ++i) {
+        int cur = __lg(g(i) ^ g(i - 1));
+        if (!a.empty() && a.top() == cur) {
+            cout << 1 << ' ';
+            a.pop();
+            if (cur == 0) {
+                if (move[cnt] == 1) {
+                    a.push(0);
+                } else if (move[cnt] == 2) {
+                    b.push(0);
+                    cout << 2 << el;
+                }else{
+                    c.push(0);
+                    cout << 3 << el;
+                }
+                cnt++;
+            }else{
+                if (b.top() > cur) {
+                    b.push(cur);
+                    cout << 2 << el;
+                }else{
+                    c.push(cur);
+                    cout << 3 << el;
+                }
+            }
+        } else if (!b.empty() && b.top() == cur) {
+            b.pop();
+            cout << 2 << ' ';
+            if (cur == 0) {
+                if (move[cnt] == 1) {
+                    a.push(0);
+                    cout << 1 << el;
+                } else if (move[cnt] == 2) {
+                    b.push(0);
+                }else{
+                    c.push(0);
+                    cout << 3 << el;
+                }
+                cnt++;
+            }else{
+                if (a.top() > cur) {
+                    a.push(cur);
+                    cout << 1 << el;
+                }else{
+                    c.push(cur);
+                    cout << 3 << el;
+                }
+            }
+        }else{
+            c.pop();
+            cout << 3 << ' ';
+            if (cur == 0) {
+                if (move[cnt] == 1) {
+                    a.push(0);
+                    cout << 1 << el;
+                } else if (move[cnt] == 2) {
+                    b.push(0);
+                    cout << 2 << el;
+                }else{
+                    c.push(0);
+                }
+                cnt++;
+            }else{
+                if (b.top() > cur) {
+                    b.push(cur);
+                    cout << 2 << el;
+                }else{
+                    a.push(cur);
+                    cout << 1 << el;
                 }
             }
         }
-
-        // Save current Gray code.
-        prevGray = gray;
     }
 }
