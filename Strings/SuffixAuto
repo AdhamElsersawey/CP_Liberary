@@ -2,7 +2,7 @@ struct sufauto {
     static const int A = 26;
 
     struct stat {
-        int len = 0, lnk = -1, cnt = 0, firstpos = -1, sz = 0;
+        int len = 0, lnk = -1, cnt = 0, firstpos = -1, sz = 0, lstpos = -2;
         bool clone = 0;
         array<int, A> nxt;
         stat() { nxt.fill(-1); }
@@ -25,6 +25,7 @@ struct sufauto {
         t.push_back({});
         t[cur].len = t[p].len + 1;
         t[cur].firstpos = t[cur].len - 1; // the pos that string end at 0-base
+        t[cur].lstpos = t[cur].len - 1;
         t[cur].cnt = 1;
         t[cur].lnk = 0;
         lst = cur;
@@ -64,6 +65,11 @@ struct sufauto {
 
         for (int i: ord) {
             t[t[i].lnk].cnt += t[i].cnt;
+            /*
+            if needed to know the positions
+            t[t[i].lnk].firstpos = min(t[i].firstpos, t[t[i].lnk].firstpos);
+            t[t[i].lnk].lstpos = max(t[i].lstpos, t[t[i].lnk].lstpos);
+            */
         }
     }
 
@@ -85,7 +91,7 @@ struct sufauto {
 
     // the number of distinct strings
     int dfs(int u = 0) {
-        ll &ret = dp[u];
+        int &ret = dp[u];
         if (~ret)return ret;
         ret = 1;
         for (auto v: t[u].nxt) {
@@ -130,7 +136,7 @@ struct sufauto {
         return (t[curr].cnt);
     }
 
-//lcs
+    //lcs
     int maxmatch(string &pat) {
         int cur = 0, l = 0, ans = 0;
         for (auto c: pat) {
@@ -144,5 +150,57 @@ struct sufauto {
             ans = max(ans, l);
         }
         return ans;
+    }
+
+    // the first pos that if we make rotation from it get the min string
+    int get(int n) {
+        // make s=s+s, n=s.size/2;
+        ll cur = 0;
+        for (int i = 0; i < n; i++) {
+            for (int x: t[cur].nxt) {
+                if (~x) {
+                    cur = x;
+                    break;
+                }
+            }
+        }
+        return t[cur].firstpos - n + 2;
+    }
+
+    int k_lcs(vector<string> &v) {
+        int n = t.size();
+        vector<int> mn(n);
+        for (int i = 0; i < n; i++) {
+            mn[i] = t[i].len;
+        }
+        vector<int> ord(n - 1);
+        iota(all(ord), 1);
+        sort(all(ord), [&](int i, int j) {
+            return t[i].len > t[j].len;
+        });
+        for (auto &pat: v) {
+            vector<int> nxt(n);
+            int cur = 0, l = 0;
+            for (auto c: pat) {
+                c -= 'a';
+                while (cur > 0 && t[cur].nxt[c] == -1) {
+                    cur = t[cur].lnk;
+                    if (~cur)l = t[cur].len;
+                }
+                if (~cur && ~t[cur].nxt[c])++l, cur = t[cur].nxt[c];
+                else l = cur = 0;
+                nxt[cur] = max(nxt[cur], l);
+            }
+            for (auto i: ord) {
+                int lnk = t[i].lnk;
+                if (~lnk) {
+                    nxt[lnk] = max(nxt[lnk], min(t[lnk].len, nxt[i]));
+                }
+            }
+            for (int i = 0; i < n; i++) {
+                mn[i] = min(mn[i], nxt[i]);
+            }
+        }
+        return *max_element(all(mn));
     }
 };
