@@ -1,0 +1,44 @@
+int M =400;
+struct MO {
+    struct query {
+        int l, r, id;
+
+        const bool operator<(const query &oth) const {
+            int I1 = l / M, I2 = oth.l / M;
+            if (I1 == I2)return I1 & 1 ? r > oth.r : r < oth.r;
+            return I1 < I2;
+        }
+    };
+
+    vector<query> q;
+
+    ll fre[N]{};
+
+    void Add(int l,int r,int i) {
+        q.push_back({l, r, i});
+    }
+
+    vector<ll> getans() {
+        sort(all(q));
+        ll n = q.size();
+        vector<ll> ans(n);
+        ll cur = 0;
+        auto add = [&](ll l) {
+            cur += fre[v[l] ^ k];
+            fre[v[l]]++;
+        };
+        auto sub = [&](int l) {
+            fre[v[l]]--;
+            cur -= fre[v[l] ^ k];
+        };
+        int l = 1, r = 0;
+        for (auto [L,R,i]: q) {
+            while (l > L)add(--l);
+            while (r < R)add(++r);
+            while (l < L)sub(l++);
+            while (r > R)sub(r--);
+            ans[i] = cur;
+        }
+        return ans;
+    }
+};
