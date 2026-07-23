@@ -1,0 +1,19 @@
+ auto C = [&](int L,int R) {
+     
+    };
+    vector dp(n + 1, vector<int>(k + 1, -1));
+    function<void(int,int,int,int,int)> DC = [&](int in,int lf,int rh,int opl,int opr) {
+        if (lf > rh)return;
+        int md = (lf + rh) >> 1, opt = opl;
+        dp[md][in] = -1;
+        for (int i = opl; i <= min(md - 1, opr); ++i) {
+            if (dp[i][in - 1] + C(i + 1, md) > dp[md][in]) {
+                dp[md][in] = dp[i][in - 1] + C(i + 1, md);
+                opt = i;
+            }
+        }
+        DC(in, lf, md - 1, opl, opt);
+        DC(in, md + 1, rh, opt, opr);
+    };
+    for (int i = 1; i <= n; i++)dp[i][1] = C(1, i);
+    for (int i = 2; i <= k; ++i)DC(i, 1, n, 1, n);
