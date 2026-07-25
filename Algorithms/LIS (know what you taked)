@@ -1,0 +1,37 @@
+vector<int> getLIS(const vector<int> &nums) {
+    if (nums.empty()) return {};
+
+    int n = nums.size();
+
+    vector<int> tails;
+    vector<int> tail_indices;
+    vector<int> parent(n, -1);
+
+    for (int i = 0; i < n; i++) {
+        auto it = lower_bound(tails.begin(), tails.end(), nums[i]);
+        int pos = distance(tails.begin(), it);
+
+        if (pos == tails.size()) {
+            tails.push_back(nums[i]);
+            tail_indices.push_back(i);
+        } else {
+            tails[pos] = nums[i];
+            tail_indices[pos] = i;
+        }
+
+
+        if (pos > 0) {
+            parent[i] = tail_indices[pos - 1];
+        }
+    }
+
+    vector<int> lis;
+    int curr = tail_indices.back();
+
+    while (curr != -1) {
+        lis.push_back(nums[curr]);
+        curr = parent[curr];
+    }
+    reverse(lis.begin(), lis.end());
+    return lis;
+}
