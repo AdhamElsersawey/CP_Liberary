@@ -1,5 +1,5 @@
 struct BinaryTrie {
-    static const int BIT = 17;
+    static const int BIT = 50;
 
     struct Node {
         Node *child[2];
@@ -38,6 +38,21 @@ struct BinaryTrie {
         }
     }
 
+    // number of values s.t. val ^ x < k
+    int query(int x, int k) {
+        Node *cur = root;
+        int ans = 0;
+        for (int i = BIT; i >= 0; i--) {
+            if (!cur) break;
+            int b1 = x >> i & 1, b2 = k >> i & 1;
+            if (b2 == 1) {
+                if (cur->child[b1]) ans += cur->child[b1]->cnt;
+                cur = cur->child[!b1];
+            } else cur = cur->child[b1];
+        }
+        return ans;
+    }
+
     int maxor(int x) {
         Node *cur = root;
         if (!cur) return 0;
@@ -46,7 +61,7 @@ struct BinaryTrie {
             int bit = (x >> i) & 1;
             int want = bit ^ 1;
             if (cur->child[want] && cur->child[want]->cnt > 0) {
-                res |= (1 << i);
+                res |= (1ll << i);
                 cur = cur->child[want];
             } else if (cur->child[bit] && cur->child[bit]->cnt > 0) {
                 cur = cur->child[bit];
