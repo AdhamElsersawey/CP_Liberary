@@ -1,0 +1,32 @@
+  //dp[i][j]=min(dp[i][k]+dp[k+1][j]+C(i,j)]
+    //       i<=k<j
+    auto solve = [&] {
+        int dp[n + 1][n + 1], opt[n + 1][n + 1];
+
+        auto C = [&](int i, int j)-> ll {
+            // Implement cost function C.
+            return v[j] - v[i - 1];
+        };
+
+        for (int i = 1; i <= n; i++) {
+            opt[i][i] = i;
+            // Initialize dp[i][i] according to the problem
+            dp[i][i] = 0;
+        }
+
+        for (int i = n - 1; i; i--) {
+            for (int j = i + 1; j <= n; j++) {
+                int mn = OO;
+                int cost = C(i, j);
+                for (int k = opt[i][j - 1]; k <= min(j-1, opt[i + 1][j]); k++) {
+                    if (mn >= dp[i][k] + dp[k + 1][j] + cost) {
+                        opt[i][j] = k;
+                        mn = dp[i][k] + dp[k + 1][j] + cost;
+                    }
+                }
+                dp[i][j] = mn;
+            }
+        }
+
+        return dp[1][n];
+    };
