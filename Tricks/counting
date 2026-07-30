@@ -1,0 +1,20 @@
+1-how many ways to rereange permutation s.t. no adjacent elements whose difference is 1 (Hertzsprung's problem)
+    //f1 = 1, f2 = 0, f3 = 0, f4 = 2
+    //f(n) = (n+1)f(n-1) - (n-2)f(n-2) - (n-5)f(n-3) + (n-3)f(n-4)
+
+2-how many ways to arrange n elements s.t. no element is in its original position (Derangements)
+    //D1 = 0, D2 = 1
+    //D(n) = (n-1) * (D(n-1) + D(n-2))
+
+3-how many ways to arrange n pairs of parentheses correctly or triangulate a polygon (Catalan Numbers)
+    //C0 = 1, C1 = 1
+    //C(n) = C(n-1) * (2(2n-1)) / (n+1)
+
+4-how many ways to draw non-intersecting chords between n points on a circle (Motzkin Numbers)
+    //M0 = 1, M1 = 1
+    //M(n) = M(n-1) * (2n+1)/(n+2) + M(n-2) * (3n-3)/(n+2)
+
+5-how many ways to arrange n couples around a table s.t. genders alternate and no spouses sit together (Ménage Problem)
+    //P1 = 0, P2 = 0, P3 = 0
+    //P(n) = n*P(n-1) + P(n-2) * (n)/(n-2) + ((-1)^(n-1) * 4) / (n-2)
+
