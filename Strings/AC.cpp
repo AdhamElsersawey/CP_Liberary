@@ -1,50 +1,20 @@
 struct Aho {
     int cn, patt;
-    /*
-        nxt[u][c] = next node when we are in node u and read character c
-        out[u] = list of pattern indices that end exactly at node u
-    */
-    vector<vector<int> > nxt, out;
-    /*
-        link[u] = failure link of node u
-        out_link[u] = next node in suffix chain that contains output
-    */
+    const int con = 26;
+    vector<vector<int> > out;
+    vector<array<int, 26> > nxt;
     vector<int> link, out_link;
-    /*
-        ord = BFS order of nodes
-        we use it later to propagate occurrences through failure links
-    */
-    vector<int> ord;
+    vector<int> ord, havePatt;
 
-    const int con = 26; // alphabet size
 
-    /*
-        Create a new node in the trie
-    */
     int node() {
-        /*
-            Each node has 26 transitions initially pointing to 0
-        */
-        nxt.emplace_back(con, 0);
-
-        /*
-            Failure link initially points to root
-        */
+        array<int, 26> ar{};
+        ar.fill(0);
+        nxt.emplace_back(ar);
         link.emplace_back(0);
-
-        /*
-            Output suffix link initially 0
-        */
         out_link.emplace_back(0);
-
-        /*
-            No pattern ends here initially
-        */
         out.emplace_back();
-
-        /*
-            return index of this node
-        */
+        havePatt.emplace_back(0);
         return cn++;
     }
 
@@ -56,13 +26,11 @@ struct Aho {
         return c - 'a';
     }
 
-    //  Insert pattern into trie
     //  Return terminal node of this pattern
     int add(const string &s, int ind) {
         int u = 0; //root
         for (auto c: s) {
             int x = get(c);
-            //   If transition does not exist, create new node
             if (!nxt[u][x])
                 nxt[u][x] = node();
             //  Move to next node
@@ -70,6 +38,7 @@ struct Aho {
         }
         //  Pattern ends at node u
         out[u].push_back(ind);
+        havePatt[u] = 1;
         //  return terminal node
 
         return u;
@@ -82,34 +51,15 @@ struct Aho {
         while (!q.empty()) {
             int u = q.front();
             q.pop();
-            /*
-                Save BFS order
-                Needed later for propagating counts
-            */
             ord.push_back(u);
-            //  Process all characters automata
             for (int c = 0; c < con; c++) {
                 int v = nxt[u][c];
-                /*
-                    If transition doesn't exist
-                    use failure transition
-                */
+
                 if (!v) {
-                    /*
-                        Root stays root
-                        otherwise follow failure link
-                    */
                     nxt[u][c] = (u == 0 ? 0 : nxt[link[u]][c]);
                 } else {
-                    /*
-                        Build failure link
-                        similar to KMP fallback
-                    */
                     link[v] = (u ? nxt[link[u]][c] : 0);
-                    /*
-                        Build output link
-                        next suffix node that has pattern ending
-                    */
+                    havePatt[v] |= havePatt[link[v]];
                     out_link[v] = out[link[v]].empty() ? out_link[link[v]] : link[v];
                     q.push(v);
                 }
@@ -117,14 +67,20 @@ struct Aho {
         }
     }
 
-    /*
-        Move in automaton with character c
-    */
     int go(int u, char c) {
-        /*
-            Since we filled missing transitions in build,
-            this is just direct lookup
-        */
         return nxt[u][get(c)];
+    }
+
+    // return the pos for every string in s
+    void search(string &s, vector<int> &len, vector<vector<int> > &ret) {
+        ret.assign(len.size(), vector<int>());
+        for (int i = 0, u = 0; i < s.size(); ++i) {
+            u = go(u, s[i]);
+            for (int t = u; t; t = out_link[t]) {
+                for (auto x: out[t]) {
+                    ret[x].push_back(i - len[x] + 1);
+                }
+            }
+        }
     }
 };
