@@ -14,7 +14,7 @@ struct Node {
 
 struct LiChao {
     Node *root = nullptr;
-    ll MIN_X = -2e9, MAX_X = 2e9;
+    ll MIN_X = -2e9, MAX_X = 2e9, sz = 0;
 
     void insert_line(Node * &node, ll l, ll r, Line new_line) {
         if (!node) {
@@ -22,9 +22,9 @@ struct LiChao {
             return;
         }
         ll mid = (l + r) >> 1;
-
-        bool left_better = new_line.eval(l) > node->line.eval(l);
-        bool mid_better = new_line.eval(mid) > node->line.eval(mid);
+        // change to > if max
+        bool left_better = new_line.eval(l) <= node->line.eval(l);
+        bool mid_better = new_line.eval(mid) <= node->line.eval(mid);
         if (mid_better) {
             swap(node->line, new_line);
         }
@@ -39,7 +39,26 @@ struct LiChao {
     }
 
     void add_line(ll m, ll c) {
+        ++sz;
         insert_line(root, MIN_X, MAX_X, {m, c});
+    }
+
+    Node *merge_nodes(Node *u, Node *v, ll l, ll r) {
+        if (!u) return v;
+        if (!v) return u;
+
+        insert_line(u, l, r, v->line);
+        if (l == r) return u;
+        ll mid = (l + r) >> 1;
+        u->left = merge_nodes(u->left, v->left, l, mid);
+        u->right = merge_nodes(u->right, v->right, mid + 1, r);
+        delete v;
+        return u;
+    }
+
+    void merge(LiChao &other) {
+        root = merge_nodes(root, other.root, MIN_X, MAX_X);
+        other.root = nullptr;
     }
 
     void insert_segment(Node * &node, ll l, ll r, ll ql, ll qr, Line new_line) {
@@ -48,7 +67,7 @@ struct LiChao {
             insert_line(node, l, r, new_line);
             return;
         }
-        if (!node) node = new Node({0, -OO});
+        if (!node) node = new Node({0, OO});
 
         ll mid = (l + r) >> 1;
         insert_segment(node->left, l, mid, ql, qr, new_line);
@@ -69,12 +88,12 @@ struct LiChao {
         if (l == r) return cur;
 
         if (x <= mid) {
-            return max(cur, query(node->left, l, mid, x));
+            return min(cur, query(node->left, l, mid, x));
         }
-        return max(cur, query(node->right, mid + 1, r, x));
+        return min(cur, query(node->right, mid + 1, r, x));
     }
 
-    ll get_min(ll x) {
+    ll query(ll x) {
         return query(root, MIN_X, MAX_X, x);
     }
 };
