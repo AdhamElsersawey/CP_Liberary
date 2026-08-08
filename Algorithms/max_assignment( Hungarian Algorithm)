@@ -1,5 +1,5 @@
 //O(n^3)
-ll max_assignment(const vector<vector<ll> > &grid) {
+void max_assignment(const vector<vector<ll> > &grid) {
     int n = grid.size();
     int m = grid[0].size();
     vector a(n + 1, vector<ll>(m + 1, 0));
@@ -53,5 +53,10 @@ ll max_assignment(const vector<vector<ll> > &grid) {
             j0 = j1;
         } while (j0 != 0);
     }
-    return v[0];
+    cout<< v[0]<<el;
+    vector<int>ans(n+1);
+    for (int i=1;i<=n;i++) {
+        ans[p[i]]=i;
+    }
+    // for (int i=1;i<=n;i++)cout<<i<<' '<<ans[i]<<el;
 }
