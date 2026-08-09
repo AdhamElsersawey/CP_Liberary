@@ -1,0 +1,85 @@
+//O(n^(2/3))
+int M=2300;
+struct MO {
+    struct query {
+        int l, r, t, id;
+
+        bool operator<(const query &oth) const {
+            int b1 = l / M, b2 = oth.l / M;
+            if (b1 != b2) return b1 < b2;
+            int b3 = r / M, b4 = oth.r / M;
+            if (b3 != b4) return (b1 & 1) ? b3 > b4 : b3 < b4;
+            return (b3 & 1) ? t > oth.t : t < oth.t;
+        }
+    };
+
+    struct update {
+        int idx, old_val, new_val;
+    };
+
+    vector<query> q;
+    vector<update> upd;
+
+    int arr[N]{};
+    int fre[N]{};
+    ll cur = 0;
+
+    void AddQuery(int l, int r, int t, int i) {
+        q.push_back({l, r, t, i});
+    }
+
+    void AddUpdate(int idx, int old_val, int new_val) {
+        upd.push_back({idx, old_val, new_val});
+    }
+
+    void apply(int u_idx, int L, int R) {
+        int idx = upd[u_idx].idx;
+        int old_val = upd[u_idx].old_val;
+        int new_val = upd[u_idx].new_val;
+
+        if (idx >= L && idx <= R) {
+            fre[old_val]--;
+            if (fre[old_val] == 0) cur--; // change
+
+            arr[idx] = new_val;
+
+            if (fre[new_val] == 0) cur++; // change
+            fre[new_val]++;
+        } else {
+            arr[idx] = new_val;
+        }
+
+        swap(upd[u_idx].old_val, upd[u_idx].new_val);
+    }
+
+    vector<ll> getans() {
+        sort(all(q));
+        vector<ll> ans(q.size());
+
+        auto add = [&](int idx) {
+            int val = arr[idx];
+            if (fre[val] == 0) cur++; // change
+            fre[val]++;
+        };
+
+        auto sub = [&](int idx) {
+            int val = arr[idx];
+            fre[val]--;
+            if (fre[val] == 0) cur--; // change
+        };
+
+        int l = 1, r = 0, t = 0;
+        for (auto [L, R, T, i]: q) {
+            while (l > L) add(--l);
+            while (r < R) add(++r);
+            while (l < L) sub(l++);
+            while (r > R) sub(r--);
+
+            while (t < T) apply(t++, l, r);
+            while (t > T) apply(--t, l, r);
+
+            ans[i] = cur;
+        }
+        return ans;
+    }
+};
