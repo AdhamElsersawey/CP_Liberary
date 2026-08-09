@@ -1,5 +1,5 @@
 //O(n^(2/3))
-int M=2300;
+int M=2300-->approx=n^(2/3);
 struct MO {
     struct query {
         int l, r, t, id;
@@ -22,13 +22,14 @@ struct MO {
 
     int arr[N]{};
     int fre[N]{};
-    ll cur = 0;
+    int cur = 0, t = 0;
 
-    void AddQuery(int l, int r, int t, int i) {
+    void AddQuery(int l, int r, int i) {
         q.push_back({l, r, t, i});
     }
 
     void AddUpdate(int idx, int old_val, int new_val) {
+        ++t;
         upd.push_back({idx, old_val, new_val});
     }
 
@@ -38,13 +39,14 @@ struct MO {
         int new_val = upd[u_idx].new_val;
 
         if (idx >= L && idx <= R) {
-            fre[old_val]--;
-            if (fre[old_val] == 0) cur--; // change
-
+            
+                fre[old_val]--;
+                if (fre[old_val] == 0) cur--; // change
+            
             arr[idx] = new_val;
-
-            if (fre[new_val] == 0) cur++; // change
-            fre[new_val]++;
+                if (fre[new_val] == 0) cur++; // change
+                fre[new_val]++;
+            
         } else {
             arr[idx] = new_val;
         }
@@ -52,9 +54,12 @@ struct MO {
         swap(upd[u_idx].old_val, upd[u_idx].new_val);
     }
 
-    vector<ll> getans() {
+    vector<ll> getans(int qq) {
+        for (int i = t - 1; ~i; i--) {
+            arr[upd[i].idx] = upd[i].old_val;
+        }
         sort(all(q));
-        vector<ll> ans(q.size());
+        vector<ll> ans(qq, -1);
 
         auto add = [&](int idx) {
             int val = arr[idx];
