@@ -30,7 +30,7 @@ struct CHT {
     // m->slope , b-> the y-axis part
     void add(T m, T b) {
         Line<T> newLine = {m, b};
-        while (lines.size() >= 2 && inter(lines[lines.size() - 2], lines.back(), newLine)) {
+        while (lines.size() >= 2 && bad(lines[lines.size() - 2], lines.back(), newLine)) {
             lines.pop_back();
         }
         lines.push_back(newLine);
