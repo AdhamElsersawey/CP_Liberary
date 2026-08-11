@@ -1,18 +1,17 @@
 random_device rd;
 mt19937 mt(rd());
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
- 
+
 auto rnd(int l, int r) {
     return uniform_int_distribution(l, r)(mt);
 }
- 
+
 struct cash {
     int base, inv, mod, n;
-    vector<int> pow{1}, invpow{1}, pref{0}, suf{0};
- 
+    vector<int> pow{1}, invpow{1}, pref{0}, suf{0}, sum{0};
+
     cash() {
     }
- 
+
     // m->mod,b->base
     cash(const string &s,int m = 1e9 + 7,int b = 30) {
         mod = m;
@@ -32,21 +31,40 @@ struct cash {
             invpow.push_back(invpow.back() * inv % mod);
             pref.push_back((pref.back() + s[i - 1] * pow[i]) % mod);
             suf.push_back((suf.back() + s[n - i] * pow[i]) % mod);
+            sum.push_back((sum.back() + pow[i]) % mod);
         }
     }
- 
+
     // 1-based
     ll get(int l,int r) {
         if (l < 0 || l > r)return 0;
         return (pref[r] - pref[l - 1] + mod) * invpow[l - 1] % mod;
     }
- 
+
     // 1-based to get the suffix to the check the palindrome
     ll get2(int l,int r) {
         if (l < 0 || l > r)return 0;
         return (suf[n - l + 1] - suf[n - r] + mod) * invpow[n - r] % mod;
     }
+
+    // sort from l->r and return the hash value for the new string 
+    ll sortsub(vector<int> &fre,int l,int r) {
+        int md = 0, cur = l;
+        for (int i = 0; i < fre.size(); i++) {
+            if (!fre[i])continue;
+            int st = cur, end = st + fre[i] - 1;
+            ll psum = sum[end] - sum[st - 1] + mod;
+            psum %= mod;
+            md += (i + '0') * psum;//change
+            md %= mod;
+            cur += fre[i];
+        }
+        int old = (pref[r] - pref[l - 1] + mod) % mod;
+        ll ret = pref[n] - old + mod + md;
+        return ret % mod;
+    }
 };
+
 struct DoubleHash {
     cash h1, h2;
 
@@ -57,8 +75,13 @@ struct DoubleHash {
 
     pair<ll, ll> get(int l, int r) {
         return {h1.get(l, r), h2.get(l, r)};
-    } pair<ll, ll> get2(int l, int r) {
+    }
+
+    pair<ll, ll> get2(int l, int r) {
         return {h1.get2(l, r), h2.get2(l, r)};
     }
-};
 
+    pair<int,int> sortsub(vector<int> &fre,int l,int r) {
+        return {h1.sortsub(fre, l, r), h2.sortsub(fre, l, r)};
+    }
+};
