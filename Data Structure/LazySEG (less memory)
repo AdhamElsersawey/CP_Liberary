@@ -1,0 +1,32 @@
+int lc[N], rc[N], sum[N], lazy[N], cnt = 1;
+
+void push(int u, int l, int r) {
+    if (lazy[u] != -1) {
+        int md = (l + r) >> 1;
+        if (!lc[u])lc[u] = ++cnt;
+        if (!rc[u])rc[u] = ++cnt;
+        lazy[lc[u]] = lazy[u];
+        sum[lc[u]] = lazy[u] * (md - l);
+        lazy[rc[u]] = lazy[u];
+        sum[rc[u]] = lazy[u] * (r - md);
+        lazy[u] = -1;
+    }
+}
+
+void add(int v, int L, int R, int lq, int rq, int8_t x) {
+    if (lq <= L && R <= rq) {
+        sum[v] = x * (R - L);
+        lazy[v] = x;
+        return;
+    }
+    if (max(L, lq) >= min(R, rq)) return;
+
+    push(v, L, R);
+    int mid = (R + L) >> 1;
+
+    if (!lc[v]) lc[v] = ++cnt;
+    if (!rc[v]) rc[v] = ++cnt;
+    add(lc[v], L, mid, lq, rq, x);
+    add(rc[v], mid, R, lq, rq, x);
+    sum[v] = sum[lc[v]] + sum[rc[v]];
+}
