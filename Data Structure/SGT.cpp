@@ -1,22 +1,21 @@
 struct Seg {
-    int mx, coun = 0;
+    int mx, coun;
     ll pref, suf, sum;
 
     Seg() {
-        mx = -OO;
+        mx = 0;
         pref = suf = 0;
         sum = 0;
-        coun = 0;
+        coun = 1;
     }
 
     Seg(int v) {
         mx = pref = sum = suf = v;
-        coun = v;
     }
 
     void change(int v) {
         mx = pref = sum = suf = v;
-        coun = v;
+        coun = 1;
     }
 };
 
@@ -32,7 +31,10 @@ struct SegT {
     //change
     Seg merge(Seg &l, Seg &r) {
         Seg res = Seg();
-        res.coun = max(l.coun, r.coun);
+        res.sum = l.sum + r.sum;
+        res.mx = max({l.mx, r.mx, l.suf + r.pref});
+        res.pref = max(l.pref, l.sum + r.pref);
+        res.suf = max(r.suf, r.sum + l.suf);
         return res;
     }
 
@@ -53,7 +55,7 @@ struct SegT {
 
     void set(int in,int mx,int i,int lx,int rx) {
         if (lx + 1 == rx) {
-            tree[i].coun = mx;
+            tree[i].change(mx);
             return;
         }
         int md = (lx + rx) / 2;
@@ -71,7 +73,7 @@ struct SegT {
 
     Seg query(int l, int r,int i,int lx,int rx) {
         if (lx >= l && r >= rx) return tree[i];
-        if (l >= rx || r <= lx) return Seg(0);
+        if (l >= rx || r <= lx) return Seg();
         int md = (lx + rx) / 2;
         auto lf = query(l, r, 2 * i + 1, lx, md);
         auto rf = query(l, r, 2 * i + 2, md, rx);
@@ -81,6 +83,7 @@ struct SegT {
     Seg query(int l, int r) {
         return query(l, r, 0, 0, sz);
     }
+
 
     int k_th(int k,int i,int lx,int rx) {
         if (lx + 1 == rx) return lx;
