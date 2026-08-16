@@ -1,0 +1,59 @@
+
+// GEOMETRY!
+//#define M_PI       3.14159265358979323846   // pi
+#define double long double
+const double PI = acosl(-1);
+const double EPS = 1e-9;
+template < typename T = int > struct Point {
+    T x, y;
+    Point(T _x = 0, T _y = 0) : x(_x), y(_y) {}
+    Point(const Point &p) : x(p.x), y(p.y) {}
+    Point operator + (const Point &p) const { return Point(x + p.x, y + p.y); }
+    Point operator - (const Point &p) const { return Point(x - p.x, y - p.y); }
+    Point operator * (T c) const { return Point(x * c, y * c); }
+    Point operator / (T c) const { return Point(x / c, y / c); }
+    bool operator == (const Point &p) const { return fabs(x - p.x) < EPS && fabs(y - p.y) < EPS; }
+    bool operator != (const Point &p) const { return x != p.x || y != p.y; }
+    bool operator < (const Point &p) const { return make_pair(y, x) < make_pair(p.y, p.x); }
+    bool operator > (const Point &p) const { return make_pair(y, x) > make_pair(p.y, p.x); }
+    bool operator <= (const Point &p) const { return make_pair(y, x) <= make_pair(p.y, p.x); }
+    bool operator >= (const Point &p) const { return make_pair(y, x) >= make_pair(p.y, p.x); }
+    T dot(const Point &p) const { return x * p.x + y * p.y; } // dot = 0 -> ang = 90
+    T cross(const Point &p) const { return x * p.y - y * p.x; } // res == 0 -> ang = 0 : res > 0 p on left ; p on right
+    T cross(const Point &a, const Point &b) const { return (a - *this).cross(b - *this); } // 2 * signed area of triangle
+    T dist() const { return x * x + y * y; }
+    T dist(const Point &p) const { return (*this - p).dist(); }
+    double distance() const { return sqrt(1.0 * dist()); }
+    double distance(const Point &p) const { return sqrt(1.0 * dist(p)); }
+    double angle() const { return atan2l(y, x); }
+    double angle(const Point &p) const { return atan2l(cross(p), dot(p)); } // ang between vectors
+    Point unit() const { return *this / distance(); } // len = 1
+    Point perp() const { return Point(-y, x); } // perpendicular vector in CCW dir
+    Point rotate(double a) const { return Point(x * cos(a) - y * sin(a), x * sin(a) + y * cos(a)); }
+    Point rotate(const Point &p, double a) const { return (*this - p).rotate(a) + p; }
+    Point normal() const { return perp().unit(); }
+    // a1 & a2 is point and d1 & d2 is direction of line
+    Point intersect(Point a1, Point d1, Point a2, Point d2) {return a1 + cross(a2 - a1, d2) / cross(d1, d2) * d1;}
+};
+using pt = Point<double>;
+template < typename T = int > struct Line {
+    pt v; T c;
+    // From direction vector v and offset c , EQ is cross(r,v) = C and r is the points belong to line
+    Line(pt v, T c) : v(v), c(c) {}
+    // From equation ax+by=c
+    Line(T a, T b, T c) : v({b,-a}), c(c) {}
+    // From points P and Q
+    Line(pt p, pt q) : v(q-p), c(v.cross(p)) {}
+    // Will be defined later:
+    // - these work with T = int , pos -> left , neg -> right , zero -> on line
+    T side(pt p) {return v.cross(p)-c;}
+    double dist(pt p) {return abs(side(p)) / v.distance();}
+    Line perpThrough(pt p) {return {p, p + v.perp()};}
+    bool cmpProj(pt p, pt q) {return v.dot(p) < v.dot(q);}//sort points on line , along direction ..
+    Line translate(pt t) {return {v, c + v.cross(t)};}
+    // - these require T = double
+    Line shiftLeft(double dist) {return {v, c + dist*(v.distance())};}
+    pt proj(pt p) {return p - v.perp()*side(p)/(v.distance());}
+    pt refl(pt p) {return p - v.perp()*2*side(p)/(v.dist());}
+};
+using line = Line<double>;
