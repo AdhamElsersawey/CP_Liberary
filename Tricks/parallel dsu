@@ -1,0 +1,27 @@
+ int n, m;
+    cin >> n >> m;
+    n++;
+    vector<Dsu> d(20, n);
+    for (int i = 0; i < m; i++) {
+        int l1, r1, l2, r2;
+        cin >> l1 >> r1 >> l2 >> r2;
+        ll len = r1 - l1 + 1;
+        for (int j = 19; ~j; --j) {
+            if (len >> j & 1) {
+                d[j].join(l1, l2);
+                l1 += 1 << j;
+                l2 += 1 << j;
+            }
+        }
+    }
+    for (int j = 19; j; --j) {
+        for (int i = 1; i < n; i++) {
+            ll lead = d[j].find(i);
+            if (lead == i)continue;
+            d[j - 1].join(i, lead);
+            d[j - 1].join(i + (1 << (j - 1)), lead + (1 << (j - 1)));
+        }
+    }
+    ll ans = 0;
+    for (int i = 1; i < n; i++)ans += i == d[0].find(i);
+    cout << ans << el;
