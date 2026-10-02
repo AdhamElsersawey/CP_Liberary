@@ -1,0 +1,91 @@
+struct trie {
+    vector<array<int, 2> > tr;
+    vector<int> cnt;
+    int sz = 0, BIT;
+    int node() {
+        tr.push_back({-1, -1});
+        cnt.emplace_back();
+        return ++sz - 1;
+    }
+
+    trie() {
+        node();
+        BIT = 31;
+    }
+
+    void insert(int x) {
+        int root = 0;
+        cnt[root]++;
+        for (int i = BIT; ~i; --i) {
+            int b = x >> i & 1;
+            if (tr[root][b] == -1)tr[root][b] = node();
+            root = tr[root][b];
+            cnt[root]++;
+        }
+    }
+
+    void erase(int x) {
+        int root = 0;
+        cnt[root]--;
+        for (int i = BIT; ~i; --i) {
+            int b = x >> i & 1;
+            root = tr[root][b];
+            assert(~root);
+            cnt[root]--;
+        }
+    }
+
+    // number of values s.t. val ^ x < k
+    int query(int x, int k) {
+        int cur = 0;
+        int ans = 0;
+        for (int i = BIT; i >= 0; i--) {
+            if (cur == -1) break;
+            int b1 = x >> i & 1, b2 = k >> i & 1;
+            if (b2 == 1) {
+                if (~tr[cur][b1]) ans += cnt[tr[cur][b1]];
+                cur = tr[cur][!b1];
+            } else cur = tr[cur][b1];
+        }
+        return ans;
+    }
+
+    int maxor(int x) {
+        int root = 0;
+        if (!cnt[root])return 0;
+        for (int i = BIT; ~i; --i) {
+            int need = x >> i & 1 ^ 1;
+            if (tr[root][need] == -1 || !cnt[tr[root][need]])need ^= 1;
+            root = tr[root][need];
+            if (need)x ^= 1ll << i;
+        }
+        return x;
+    }
+
+    int count(int x) const {
+        int cur = 0;
+        for (int i = BIT; i >= 0; --i) {
+            int b = (x >> i) & 1;
+            int nx = tr[cur][b];
+            if (nx == -1) return 0;
+            cur = nx;
+        }
+        return cnt[cur];
+    }
+
+    ll kth(int k) {
+        if (cnt[0] < k)return -1;
+        int cur = 0, ans = 0;
+        for (int i = BIT; ~i; --i) {
+            int left = tr[cur][0] != -1 ? cnt[tr[cur][0]] : 0;
+            if (k <= left) {
+                cur = tr[cur][0];
+            } else {
+                k -= left;
+                ans |= 1ll << i;
+                cur = tr[cur][1];
+            }
+        }
+        return ans;
+    }
+};
