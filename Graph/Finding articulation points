@@ -1,0 +1,22 @@
+    vector<int> vis(n + 1), tin(n + 1), low(n + 1);
+    ll timer = 0;
+    set<int> points;
+    function<void(int,int)> dfs = [&](int u,int p) {
+        vis[u] = 1;
+        tin[u] = low[u] = timer++;
+        ll cn = 0;
+        for (auto [v,w]: adj[u]) {
+            if (v == p)continue;
+            if (vis[v]) {
+                low[u] = min(low[u], tin[v]);
+            } else {
+                dfs(v, u);
+                low[u] = min(low[u], low[v]);
+                if (low[v]>=tin[u]&&~p) {
+                    points.insert(u);
+                }
+                ++cn;
+            }
+        }
+        if (p==-1&&cn>1)points.insert(u);
+    };
